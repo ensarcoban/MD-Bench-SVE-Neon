@@ -11,7 +11,7 @@ OPT_SCHEME ?= verletlist
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP
-DATA_TYPE ?= DP
+DATA_TYPE ?= SP
 # AOS or SOA
 DATA_LAYOUT ?= AOS
 # Debug
@@ -34,7 +34,7 @@ ENABLE_OMP_SIMD ?= false
 
 # Configurations for clusterpair optimization scheme
 # Use reference version
-USE_REFERENCE_VERSION ?= false
+USE_REFERENCE_VERSION ?= true
 # Enable XTC output (a GROMACS file format for trajectories)
 XTC_OUTPUT ?= false
 # Check if cj is local when decreasing reaction force
