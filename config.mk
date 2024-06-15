@@ -1,13 +1,13 @@
 # Compiler tool chain (GCC/CLANG/ICC/ICX/ONEAPI/NVCC)
 TOOLCHAIN ?= CLANG
 # ISA of instruction code (X86/ARM)
-ISA ?= ARM
+ISA ?= X86
 # Instruction set for instrinsic kernels (NONE/<X86-SIMD>/<ARM-SIMD>)
 # with X86-SIMD options: SSE/AVX/AVX_FMA/AVX2/AVX512
 # with ARM-SIMD options: NEON/SVE (SVE not implemented yet!)
-SIMD ?= NEON
+SIMD ?= AVX2
 # Optimization scheme (verletlist/clusterpair)
-OPT_SCHEME ?= clusterpair
+OPT_SCHEME ?= verletlist
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP

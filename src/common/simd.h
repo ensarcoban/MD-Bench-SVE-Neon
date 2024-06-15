@@ -39,13 +39,8 @@
 #endif
 
 #ifdef __ARM_NEON
-#if PRECISION == 2
-#include "simd/neon_double.h"
-#else
-#include "simd/neon_float.h"
-#endif
-// #include <arm_acle.h>
-// #include <arm_neon.h>
+#include <arm_acle.h>
+#include <arm_neon.h>
 #endif
 #ifdef __ARM_FEATURE_SVE
 #include <arm_acle.h>
