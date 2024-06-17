@@ -1,17 +1,17 @@
 # Compiler tool chain (GCC/CLANG/ICC/ICX/ONEAPI/NVCC)
 TOOLCHAIN ?= CLANG
 # ISA of instruction code (X86/ARM)
-ISA ?= X86
+ISA ?= ARM
 # Instruction set for instrinsic kernels (NONE/<X86-SIMD>/<ARM-SIMD>)
 # with X86-SIMD options: SSE/AVX/AVX_FMA/AVX2/AVX512
 # with ARM-SIMD options: NEON/SVE (SVE not implemented yet!)
-SIMD ?= AVX2
+SIMD ?= NEON
 # Optimization scheme (verletlist/clusterpair)
-OPT_SCHEME ?= verletlist
+OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP
-DATA_TYPE ?= SP
+DATA_TYPE ?= DP
 # AOS or SOA
 DATA_LAYOUT ?= AOS
 # Debug
@@ -34,11 +34,11 @@ ENABLE_OMP_SIMD ?= false
 
 # Configurations for clusterpair optimization scheme
 # Use reference version
-USE_REFERENCE_VERSION ?= true
+USE_REFERENCE_VERSION ?= false
 # Enable XTC output (a GROMACS file format for trajectories)
 XTC_OUTPUT ?= false
 # Check if cj is local when decreasing reaction force
-HALF_NEIGHBOR_LISTS_CHECK_CJ ?= true
+HALF_NEIGHBOR_LISTS_CHECK_CJ ?= false
 
 # Configurations for CUDA
 # Use CUDA pinned memory to optimize transfers
@@ -58,7 +58,7 @@ ifeq ($(strip $(SIMD)), NONE)
 else
 ifeq ($(strip $(ISA)),ARM)
     ifeq ($(strip $(SIMD)), NEON)
-        __SIMD_WIDTH_DBL__=2
+        __SIMD_WIDTH_DBL__=4 # 2
     else ifeq ($(strip $(SIMD)), SVE)
 		# needs further specification
         __SIMD_WIDTH_DBL__=2
