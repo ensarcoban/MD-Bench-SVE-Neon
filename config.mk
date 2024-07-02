@@ -58,7 +58,12 @@ ifeq ($(strip $(SIMD)), NONE)
 else
 ifeq ($(strip $(ISA)),ARM)
     ifeq ($(strip $(SIMD)), NEON)
-        __SIMD_WIDTH_DBL__=4 # 2
+        # __SIMD_WIDTH_DBL__=4 # 2
+        ifeq ($(strip $(DATA_TYPE)), DP)
+            __SIMD_WIDTH_DBL__=4
+        else
+            __SIMD_WIDTH_DBL__=2
+        endif
     else ifeq ($(strip $(SIMD)), SVE)
 		# needs further specification
         __SIMD_WIDTH_DBL__=2

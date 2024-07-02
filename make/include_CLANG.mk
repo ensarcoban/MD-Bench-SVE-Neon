@@ -7,7 +7,7 @@ ANSI_CFLAGS += -pedantic
 # ANSI_CFLAGS += -Wextra
 
 ifeq ($(strip $(ISA)),ARM)
-CFLAGS  = -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+nosve $(ANSI_CFLAGS)
+CFLAGS  = -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+nosve -Xpreprocessor -fopenmp $(ANSI_CFLAGS)
 endif
 ifeq ($(strip $(ISA)),X86)
 CFLAGS   = -Ofast -march=native -mavx2 -mfma $(ANSI_CFLAGS) #-fopenmp -Xpreprocessor -fopenmp -g
@@ -18,7 +18,7 @@ ASFLAGS  = -masm=intel
 DEFINES  += -DNO_ZMM_INTRIN
 endif
 # MacOSX with Apple Silicon and homebrew
-# INCLUDES = -I/opt/homebrew/Cellar/libomp/18.1.5/include/
-# LIBS     = -lm  -L/opt/homebrew/Cellar/libomp/18.1.5/lib/ -lomp
+INCLUDES = -I/opt/homebrew/Cellar/libomp/18.1.8/include
+LIBS     = -lm  -L/opt/homebrew/Cellar/libomp/18.1.8/lib -lomp
 LFLAGS   = -lm
 DEFINES  += -D_GNU_SOURCE

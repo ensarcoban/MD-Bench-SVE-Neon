@@ -10,6 +10,14 @@ static inline MD_SIMD_FLOAT simd_broadcast(float value) { return vdupq_n_f32(val
 // Zeroing a SIMD vector
 static inline MD_SIMD_FLOAT simd_zero(void) { return vdupq_n_f32(0.0f); }
 
+// Helper function to subtract two float64x2x2_t vectors
+static inline MD_SIMD_FLOAT simd_sub(MD_SIMD_FLOAT a, MD_SIMD_FLOAT b)
+{
+    MD_SIMD_FLOAT result;
+    result = vsubq_f32(a, b);
+    return result;
+}
+
 // Loading data into a SIMD vector
 static inline MD_SIMD_FLOAT simd_load(const float* ptr) { return vld1q_f32(ptr); }
 
