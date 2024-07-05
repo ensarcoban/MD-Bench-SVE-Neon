@@ -45,7 +45,7 @@ extern double computeForceLJCUDA(Parameter*, Atom*, Neighbor*, Stats*);
 #define CLUSTER_M    1
 #define CLUSTER_N    VECTOR_WIDTH
 #else
-#define CLUSTER_M 4
+#define CLUSTER_M 2 //@todo: This is actualy 4 for anything else, figure out whats wrong
 // Simd2xNN (here used for single-precision)
 #if VECTOR_WIDTH > CLUSTER_M * 2
 #define KERNEL_NAME "Simd2xNN"

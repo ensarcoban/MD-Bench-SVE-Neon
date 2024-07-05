@@ -38,15 +38,23 @@
 #endif
 #endif
 
-#ifdef __ARM_NEON
+#if defined(__aarch64__)||defined(__ARM_NEON)
 #include <arm_acle.h>
 #include <arm_neon.h>
+#if defined(__ISA_NEON__)
+#if PRECISION == 2
+#include "simd/neon_double.h"
+#else
+#include "simd/neon_float.h"
 #endif
-#ifdef __ARM_FEATURE_SVE
-#include <arm_acle.h>
-#include <arm_sve.h>
 #endif
 
+// #ifdef __ARM_FEATURE_SVE
+// #include <arm_acle.h>
+// #include <arm_sve.h>
+// #endif
+
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
