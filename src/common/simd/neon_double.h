@@ -7,28 +7,18 @@
 
 static inline float64x2_t simd_broadcast(double value)
 {
-    // Create a vector with the broadcasted value
-    float64x2_t v = vdupq_n_f64(value);
-
-    // Return the value replicated across both parts of the float64x2_t structure
-    return (float64x2_t) { v };
+    return vdupq_n_f64(value);
 }
 
 static inline float64x2_t simd_zero(void)
 {
-    // Create a vector with the broadcasted value
-    float64x2_t v = vdupq_n_f64(0.0);
-
-    // Return the value replicated across both parts of the float64x2_t structure
-    return (float64x2_t) { v };
+    return vdupq_n_f64(0.0);;
 }
 
 // Helper function to subtract two float64x2_t vectors
 static inline float64x2_t simd_sub(float64x2_t a, float64x2_t b)
 {
-    float64x2_t result;
-    result = vsubq_f64(a, b);
-    return result;
+    return vsubq_f64(a, b);
 }
 
 static inline float64x2_t simd_load(const double* ptr)
@@ -45,52 +35,40 @@ static inline void simd_store(double* ptr, float64x2_t vec)
 
 static inline float64x2_t simd_add(float64x2_t a, float64x2_t b)
 {
-    float64x2_t result;
-    result = vaddq_f64(a, b);
-    return result;
+    return vaddq_f64(a, b);
 }
 
 static inline float64x2_t simd_mul(float64x2_t a, float64x2_t b)
 {
-    float64x2_t result;
-    result = vmulq_f64(a, b);
-    return result;
+    return vmulq_f64(a, b);
 }
 
 static inline float64x2_t simd_fma(float64x2_t a, float64x2_t b, float64x2_t c)
 {
-    float64x2_t result;
-    result = vfmaq_f64(c, a, b);
-    return result;
+    return vfmaq_f64(c, a, b);
 }
 
-static inline uint64x2_t simd_mask_from_u32(uint32_t a)
+static inline uint64x2_t simd_mask_from_u32(uint32_t a) // @?
 {
-    const uint32_t all  = 0xFFFFFFFF;
-    const uint32_t none = 0x0;
-    uint64x2_t mask     = vreinterpretq_u64_u32(vdupq_n_u32((a & 0x8) ? all : none));
-    mask                = vsetq_lane_u64((a & 0x4) ? 0xFFFFFFFFFFFFFFFFULL : 0x0ULL, mask, 1);
-    uint64x2_t result;
-    result = mask;
-    return result;
+    const uint64_t all  = 0xFFFFFFFFFFFFFFFF;
+    const uint64_t none = 0x0;
+    // int64x2_t v0 = {(int64_t)(a & 0x2)? all:none,(int64_t)(a & 0x1)? all:none};
+    // return v0;
+    return vreinterpretq_f64_u64(
+            vsetq_lane_u32((a & 0x2) ? all : none,
+                vsetq_lane_u32((a & 0x1) ? all : none, vdupq_n_u32(0), 0),1));
 }
 
 
 static inline uint64x2_t simd_mask_and(uint64x2_t a, uint64x2_t b)
 {
-    uint64x2_t result0 = vandq_u64(a, b);
-    uint64x2_t result;
-    result= result0;
-    return result;
+    return vandq_u64(a, b);
 }
 
 
 static inline uint64x2_t simd_mask_cond_lt(float64x2_t a, float64x2_t b)
 {
-    uint64x2_t mask0 = vcltq_f64(a, b);
-    uint64x2_t result;
-    result = mask0;
-    return result;
+    return vcltq_f64(a, b);
 }
 
 static inline float64x2_t simd_reciprocal(float64x2_t a)
@@ -109,17 +87,9 @@ static inline float64x2_t simd_reciprocal(float64x2_t a)
     return reciprocal_result;
 }
 
-#include <arm_neon.h>
-
 static inline double simd_incr_reduced_sum(
     double* m, float64x2_t v0, float64x2_t v1, float64x2_t v2, float64x2_t v3)
 {
-    // Horizontal add pairs within each vector
-    // float64x2_t sum0 = vpaddq_f64(v0.val[0], v0.val[1]); // Add pairs in v0
-    // float64x2_t sum1 = vpaddq_f64(v1.val[0], v1.val[1]); // Add pairs in v1
-    // float64x2_t sum2 = vpaddq_f64(v2.val[0], v2.val[1]); // Add pairs in v2
-    // float64x2_t sum3 = vpaddq_f64(v3.val[0], v3.val[1]); // Add pairs in v3
-
     // Sum all the resulting vectors
     float64x2_t sum = vaddq_f64(v0, v1);
     sum             = vaddq_f64(sum, v2);
@@ -130,7 +100,7 @@ static inline double simd_incr_reduced_sum(
     sum               = vaddq_f64(sum, mem);
 
     // Store the result back to memory
-    vst1q_f64(m, mem);
+    vst1q_f64(m, sum);
 
     // Reduce the final vector to a single double
     float64x2_t sum_parts = vpaddq_f64(sum, sum); // Horizontal add
@@ -141,14 +111,10 @@ static inline double simd_incr_reduced_sum(
 
 static inline float64x2_t simd_masked_add(float64x2_t a, float64x2_t b, uint64x2_t m) {
     // Perform bitwise AND operation on the mask and vector b
-    float64x2_t masked_b;
-    masked_b = vreinterpretq_f64_u64(vandq_u64(vreinterpretq_u64_f64(b), m));
+    float64x2_t masked_b = vreinterpretq_f64_u64(vandq_u64(vreinterpretq_u64_f64(b), m));
     
     // Add the result to vector a
-    float64x2_t result;
-    result= vaddq_f64(a, masked_b);
-
-    return result;
+    return vaddq_f64(a, masked_b);
 }
 
 

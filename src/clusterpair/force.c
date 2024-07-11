@@ -29,7 +29,11 @@ void initForce(Parameter* param)
             // Simd2xNN (here used for single-precision)
 #if VECTOR_WIDTH > CLUSTER_M * 2
             computeForce = computeForceLJ2xnnFullNeigh;
-#else // Simd4xN
+#elif VECTOR_WIDTH == 2
+            printf("HERE");
+            computeForce = computeForceLJ2xnFullNeigh;
+#else
+ // Simd4xN
             computeForce = computeForceLJ4xnFullNeigh;
 #endif
 #endif

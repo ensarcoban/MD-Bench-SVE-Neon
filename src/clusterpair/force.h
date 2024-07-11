@@ -22,6 +22,7 @@ extern void initForce(Parameter*);
 extern double computeForceLJRef(Parameter*, Atom*, Neighbor*, Stats*);
 extern double computeForceLJ4xnHalfNeigh(Parameter*, Atom*, Neighbor*, Stats*);
 extern double computeForceLJ4xnFullNeigh(Parameter*, Atom*, Neighbor*, Stats*);
+extern double computeForceLJ2xnFullNeigh(Parameter*, Atom*, Neighbor*, Stats*);
 extern double computeForceLJ2xnnHalfNeigh(Parameter*, Atom*, Neighbor*, Stats*);
 extern double computeForceLJ2xnnFullNeigh(Parameter*, Atom*, Neighbor*, Stats*);
 extern double computeForceEam(Parameter*, Atom*, Neighbor*, Stats*);
@@ -45,18 +46,26 @@ extern double computeForceLJCUDA(Parameter*, Atom*, Neighbor*, Stats*);
 #define CLUSTER_M    1
 #define CLUSTER_N    VECTOR_WIDTH
 #else
-#define CLUSTER_M 2 //@todo: This is actualy 4 for anything else, figure out whats wrong
+#define CLUSTER_M 4 //@todo: This is actualy 4 for anything else, figure out whats wrong
 // Simd2xNN (here used for single-precision)
 #if VECTOR_WIDTH > CLUSTER_M * 2
-#define KERNEL_NAME "Simd2xNN"
-#define CLUSTER_N   (VECTOR_WIDTH / 2)
-#define UNROLL_I    4
+// #define KERNEL_NAME "Simd2xNN"
+// #define CLUSTER_N   (VECTOR_WIDTH / 2)
+// #define UNROLL_I    4
+// #define UNROLL_J    2
+#elif VECTOR_WIDTH == 2
+#undef CLUSTER_M
+#define KERNEL_NAME "Simd2xN"
+#define CLUSTER_M   2
+#define CLUSTER_N   2
+#define UNROLL_I    2
 #define UNROLL_J    2
 #else // Simd4xN
-#define KERNEL_NAME "Simd4xN"
-#define CLUSTER_N   VECTOR_WIDTH
-#define UNROLL_I    4
-#define UNROLL_J    1
+#error
+// #define KERNEL_NAME "Simd4xN"
+// #define CLUSTER_N   VECTOR_WIDTH
+// #define UNROLL_I    4
+// #define UNROLL_J    1
 #endif
 #endif
 #endif
@@ -66,9 +75,10 @@ extern double computeForceLJCUDA(Parameter*, Atom*, Neighbor*, Stats*);
 #define CL_Y_OFFSET (1 * CLUSTER_M)
 #define CL_Z_OFFSET (2 * CLUSTER_M)
 #else
-#define CL_X_OFFSET (0 * CLUSTER_N)
-#define CL_Y_OFFSET (1 * CLUSTER_N)
-#define CL_Z_OFFSET (2 * CLUSTER_N)
+#error
+// #define CL_X_OFFSET (0 * CLUSTER_N)
+// #define CL_Y_OFFSET (1 * CLUSTER_N)
+// #define CL_Z_OFFSET (2 * CLUSTER_N)
 #endif
 
 #if CLUSTER_M == CLUSTER_N
@@ -77,15 +87,17 @@ extern double computeForceLJCUDA(Parameter*, Atom*, Neighbor*, Stats*);
 #define CI_BASE_INDEX(a, b) ((a)*CLUSTER_N * (b))
 #define CJ_BASE_INDEX(a, b) ((a)*CLUSTER_N * (b))
 #elif CLUSTER_M == CLUSTER_N * 2 // M > N
-#define CJ0_FROM_CI(a)      ((a) << 1)
-#define CJ1_FROM_CI(a)      (((a) << 1) | 0x1)
-#define CI_BASE_INDEX(a, b) ((a)*CLUSTER_M * (b))
-#define CJ_BASE_INDEX(a, b) (((a) >> 1) * CLUSTER_M * (b) + ((a)&0x1) * (CLUSTER_M >> 1))
+#error
+// #define CJ0_FROM_CI(a)      ((a) << 1)
+// #define CJ1_FROM_CI(a)      (((a) << 1) | 0x1)
+// #define CI_BASE_INDEX(a, b) ((a)*CLUSTER_M * (b))
+// #define CJ_BASE_INDEX(a, b) (((a) >> 1) * CLUSTER_M * (b) + ((a)&0x1) * (CLUSTER_M >> 1))
 #elif CLUSTER_M == CLUSTER_N / 2 // M < N
-#define CJ0_FROM_CI(a)      ((a) >> 1)
-#define CJ1_FROM_CI(a)      ((a) >> 1)
-#define CI_BASE_INDEX(a, b) (((a) >> 1) * CLUSTER_N * (b) + ((a)&0x1) * (CLUSTER_N >> 1))
-#define CJ_BASE_INDEX(a, b) ((a)*CLUSTER_N * (b))
+#error
+// #define CJ0_FROM_CI(a)      ((a) >> 1)
+// #define CJ1_FROM_CI(a)      ((a) >> 1)
+// #define CI_BASE_INDEX(a, b) (((a) >> 1) * CLUSTER_N * (b) + ((a)&0x1) * (CLUSTER_N >> 1))
+// #define CJ_BASE_INDEX(a, b) ((a)*CLUSTER_N * (b))
 #else
 #error "Invalid cluster configuration!"
 #endif

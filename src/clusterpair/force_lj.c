@@ -1196,4 +1196,174 @@ double computeForceLJ4xnFullNeigh(
     DEBUG_MESSAGE("computeForceLJ_4xn end\n");
     return E - S;
 }
+
+double computeForceLJ2xnFullNeigh(
+    Parameter* param, Atom* atom, Neighbor* neighbor, Stats* stats)
+{
+    DEBUG_MESSAGE("computeForceLJ_4xn begin\n");
+    int Nlocal = atom->Nlocal;
+    int* neighs;
+    MD_FLOAT cutforcesq          = param->cutforce * param->cutforce;
+    MD_FLOAT sigma6              = param->sigma6;
+    MD_FLOAT epsilon             = param->epsilon;
+    MD_SIMD_FLOAT cutforcesq_vec = simd_broadcast(cutforcesq);
+    MD_SIMD_FLOAT sigma6_vec     = simd_broadcast(sigma6);
+    MD_SIMD_FLOAT eps_vec        = simd_broadcast(epsilon);
+    MD_SIMD_FLOAT c48_vec        = simd_broadcast(48.0);
+    MD_SIMD_FLOAT c05_vec        = simd_broadcast(0.5);
+
+    for (int ci = 0; ci < atom->Nclusters_local; ci++) {
+        int ci_vec_base = CI_VECTOR_BASE_INDEX(ci);
+        MD_FLOAT* ci_f  = &atom->cl_f[ci_vec_base];
+        for (int cii = 0; cii < atom->iclusters[ci].natoms; cii++) {
+            ci_f[CL_X_OFFSET + cii] = 0.0;
+            ci_f[CL_Y_OFFSET + cii] = 0.0;
+            ci_f[CL_Z_OFFSET + cii] = 0.0;
+        }
+    }
+
+    double S = getTimeStamp();
+
+#pragma omp parallel
+    {
+        LIKWID_MARKER_START("force");
+
+#pragma omp for schedule(runtime)
+        for (int ci = 0; ci < atom->Nclusters_local; ci++) {
+            int ci_cj0 = CJ0_FROM_CI(ci);
+            int ci_vec_base      = CI_VECTOR_BASE_INDEX(ci);
+            MD_FLOAT* ci_x       = &atom->cl_x[ci_vec_base];
+            MD_FLOAT* ci_f       = &atom->cl_f[ci_vec_base];
+            neighs               = &neighbor->neighbors[ci * neighbor->maxneighs];
+            int numneighs        = neighbor->numneigh[ci];
+            int numneighs_masked = neighbor->numneigh_masked[ci];
+
+            MD_SIMD_FLOAT xi0_tmp = simd_broadcast(ci_x[CL_X_OFFSET + 0]);
+            MD_SIMD_FLOAT xi1_tmp = simd_broadcast(ci_x[CL_X_OFFSET + 1]);
+            MD_SIMD_FLOAT yi0_tmp = simd_broadcast(ci_x[CL_Y_OFFSET + 0]);
+            MD_SIMD_FLOAT yi1_tmp = simd_broadcast(ci_x[CL_Y_OFFSET + 1]);
+            MD_SIMD_FLOAT zi0_tmp = simd_broadcast(ci_x[CL_Z_OFFSET + 0]);
+            MD_SIMD_FLOAT zi1_tmp = simd_broadcast(ci_x[CL_Z_OFFSET + 1]);
+            MD_SIMD_FLOAT fix0    = simd_zero();
+            MD_SIMD_FLOAT fiy0    = simd_zero();
+            MD_SIMD_FLOAT fiz0    = simd_zero();
+            MD_SIMD_FLOAT fix1    = simd_zero();
+            MD_SIMD_FLOAT fiy1    = simd_zero();
+            MD_SIMD_FLOAT fiz1    = simd_zero();
+
+            for (int k = 0; k < numneighs_masked; k++) {
+                int cj               = neighs[k];
+                int cj_vec_base      = CJ_VECTOR_BASE_INDEX(cj);
+                MD_FLOAT* cj_x       = &atom->cl_x[cj_vec_base];
+                MD_SIMD_FLOAT xj_tmp = simd_load(&cj_x[CL_X_OFFSET]);
+                MD_SIMD_FLOAT yj_tmp = simd_load(&cj_x[CL_Y_OFFSET]);
+                MD_SIMD_FLOAT zj_tmp = simd_load(&cj_x[CL_Z_OFFSET]);
+                MD_SIMD_FLOAT delx0  = xi0_tmp - xj_tmp;
+                MD_SIMD_FLOAT dely0  = yi0_tmp - yj_tmp;
+                MD_SIMD_FLOAT delz0  = zi0_tmp - zj_tmp;
+                MD_SIMD_FLOAT delx1  = xi1_tmp - xj_tmp;
+                MD_SIMD_FLOAT dely1  = yi1_tmp - yj_tmp;
+                MD_SIMD_FLOAT delz1  = zi1_tmp - zj_tmp;
+
+#if CLUSTER_M == CLUSTER_N
+                unsigned int cond0      = (unsigned int)(cj == ci_cj0);
+                MD_SIMD_MASK excl_mask0 = simd_mask_from_u32(
+                    atom->masks_2xn_fn[cond0 * 2 + 0]);
+                MD_SIMD_MASK excl_mask1 = simd_mask_from_u32(
+                    atom->masks_2xn_fn[cond0 * 2 + 1]);
+#else
+#error Wrong Cluster Size 
+#endif
+
+                MD_SIMD_FLOAT rsq0 = simd_fma(delx0,
+                    delx0,
+                    simd_fma(dely0, dely0, delz0 * delz0));
+                MD_SIMD_FLOAT rsq1 = simd_fma(delx1,
+                    delx1,
+                    simd_fma(dely1, dely1, delz1 * delz1));
+
+                MD_SIMD_MASK cutoff_mask0 = simd_mask_and(excl_mask0,
+                    simd_mask_cond_lt(rsq0, cutforcesq_vec));
+                MD_SIMD_MASK cutoff_mask1 = simd_mask_and(excl_mask1,
+                    simd_mask_cond_lt(rsq1, cutforcesq_vec));
+
+                MD_SIMD_FLOAT sr2_0 = simd_reciprocal(rsq0);
+                MD_SIMD_FLOAT sr2_1 = simd_reciprocal(rsq1);
+
+                MD_SIMD_FLOAT sr6_0 = sr2_0 * sr2_0 * sr2_0 * sigma6_vec;
+                MD_SIMD_FLOAT sr6_1 = sr2_1 * sr2_1 * sr2_1 * sigma6_vec;
+
+                MD_SIMD_FLOAT force0 = c48_vec * sr6_0 * (sr6_0 - c05_vec) * sr2_0 *
+                                       eps_vec;
+                MD_SIMD_FLOAT force1 = c48_vec * sr6_1 * (sr6_1 - c05_vec) * sr2_1 *
+                                       eps_vec;
+
+                fix0 = simd_masked_add(fix0, delx0 * force0, cutoff_mask0);
+                fiy0 = simd_masked_add(fiy0, dely0 * force0, cutoff_mask0);
+                fiz0 = simd_masked_add(fiz0, delz0 * force0, cutoff_mask0);
+                fix1 = simd_masked_add(fix1, delx1 * force1, cutoff_mask1);
+                fiy1 = simd_masked_add(fiy1, dely1 * force1, cutoff_mask1);
+                fiz1 = simd_masked_add(fiz1, delz1 * force1, cutoff_mask1);
+            }
+
+            for (int k = numneighs_masked; k < numneighs; k++) {
+                int cj               = neighs[k];
+                int cj_vec_base      = CJ_VECTOR_BASE_INDEX(cj);
+                MD_FLOAT* cj_x       = &atom->cl_x[cj_vec_base];
+                MD_SIMD_FLOAT xj_tmp = simd_load(&cj_x[CL_X_OFFSET]);
+                MD_SIMD_FLOAT yj_tmp = simd_load(&cj_x[CL_Y_OFFSET]);
+                MD_SIMD_FLOAT zj_tmp = simd_load(&cj_x[CL_Z_OFFSET]);
+                MD_SIMD_FLOAT delx0  = xi0_tmp - xj_tmp;
+                MD_SIMD_FLOAT dely0  = yi0_tmp - yj_tmp;
+                MD_SIMD_FLOAT delz0  = zi0_tmp - zj_tmp;
+                MD_SIMD_FLOAT delx1  = xi1_tmp - xj_tmp;
+                MD_SIMD_FLOAT dely1  = yi1_tmp - yj_tmp;
+                MD_SIMD_FLOAT delz1  = zi1_tmp - zj_tmp;
+
+                MD_SIMD_FLOAT rsq0 = simd_fma(delx0,
+                    delx0,
+                    simd_fma(dely0, dely0, delz0 * delz0));
+                MD_SIMD_FLOAT rsq1 = simd_fma(delx1,
+                    delx1,
+                    simd_fma(dely1, dely1, delz1 * delz1));
+
+                MD_SIMD_MASK cutoff_mask0 = simd_mask_cond_lt(rsq0, cutforcesq_vec);
+                MD_SIMD_MASK cutoff_mask1 = simd_mask_cond_lt(rsq1, cutforcesq_vec);
+
+                MD_SIMD_FLOAT sr2_0 = simd_reciprocal(rsq0);
+                MD_SIMD_FLOAT sr2_1 = simd_reciprocal(rsq1);
+
+                MD_SIMD_FLOAT sr6_0 = sr2_0 * sr2_0 * sr2_0 * sigma6_vec;
+                MD_SIMD_FLOAT sr6_1 = sr2_1 * sr2_1 * sr2_1 * sigma6_vec;
+
+                MD_SIMD_FLOAT force0 = c48_vec * sr6_0 * (sr6_0 - c05_vec) * sr2_0 *
+                                       eps_vec;
+                MD_SIMD_FLOAT force1 = c48_vec * sr6_1 * (sr6_1 - c05_vec) * sr2_1 *
+                                       eps_vec;
+
+                fix0 = simd_masked_add(fix0, delx0 * force0, cutoff_mask0);
+                fiy0 = simd_masked_add(fiy0, dely0 * force0, cutoff_mask0);
+                fiz0 = simd_masked_add(fiz0, delz0 * force0, cutoff_mask0);
+                fix1 = simd_masked_add(fix1, delx1 * force1, cutoff_mask1);
+                fiy1 = simd_masked_add(fiy1, dely1 * force1, cutoff_mask1);
+                fiz1 = simd_masked_add(fiz1, delz1 * force1, cutoff_mask1);
+            }
+
+            simd_incr_reduced_sum(&ci_f[CL_X_OFFSET], fix0, fix1, simd_zero(), simd_zero());
+            simd_incr_reduced_sum(&ci_f[CL_Y_OFFSET], fiy0, fiy1, simd_zero(), simd_zero());
+            simd_incr_reduced_sum(&ci_f[CL_Z_OFFSET], fiz0, fiz1, simd_zero(), simd_zero());
+
+            addStat(stats->calculated_forces, 1);
+            addStat(stats->num_neighs, numneighs);
+            addStat(stats->force_iters, (long long int)((double)numneighs));
+        }
+
+        LIKWID_MARKER_STOP("force");
+    }
+
+    double E = getTimeStamp();
+    DEBUG_MESSAGE("computeForceLJ_2xn end\n");
+    return E - S;
+}
+
 #endif

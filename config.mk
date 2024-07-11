@@ -38,7 +38,7 @@ USE_REFERENCE_VERSION ?= false
 # Enable XTC output (a GROMACS file format for trajectories)
 XTC_OUTPUT ?= false
 # Check if cj is local when decreasing reaction force
-HALF_NEIGHBOR_LISTS_CHECK_CJ ?= true
+HALF_NEIGHBOR_LISTS_CHECK_CJ ?= false
 
 # Configurations for CUDA
 # Use CUDA pinned memory to optimize transfers

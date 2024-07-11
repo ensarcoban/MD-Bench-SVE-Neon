@@ -469,11 +469,14 @@ void initMasks(Atom* atom)
         CLUSTER_M * VECTOR_WIDTH * sizeof(MD_UINT));
     atom->diagonal_4xn_j_minus_i  = allocate(ALIGNMENT,
         MAX(CLUSTER_M, VECTOR_WIDTH) * sizeof(MD_UINT));
+    atom->diagonal_2xn_j_minus_i  = allocate(ALIGNMENT,
+        MAX(CLUSTER_M, VECTOR_WIDTH) * sizeof(MD_UINT));
     atom->diagonal_2xnn_j_minus_i = allocate(ALIGNMENT, VECTOR_WIDTH * sizeof(MD_UINT));
     // atom->masks_2xnn = allocate(ALIGNMENT, 8 * sizeof(unsigned int));
 
     for (int j = 0; j < MAX(CLUSTER_M, VECTOR_WIDTH); j++) {
         atom->diagonal_4xn_j_minus_i[j] = (MD_FLOAT)(j)-0.5;
+        atom->diagonal_2xn_j_minus_i[j] = (MD_FLOAT)(j)-0.5;
     }
 
     for (int j = 0; j < VECTOR_WIDTH / 2; j++) {
@@ -493,6 +496,7 @@ void initMasks(Atom* atom)
         mask3                              = (unsigned int)(0xf - 0xf * cond0);
         atom->masks_2xnn_hn[cond0 * 2 + 0] = (mask1 << halfMaskBits) | mask0;
         atom->masks_2xnn_hn[cond0 * 2 + 1] = (mask3 << halfMaskBits) | mask2;
+        
 
         mask0                              = (unsigned int)(0xf - 0x1 * cond0);
         mask1                              = (unsigned int)(0xf - 0x2 * cond0);
@@ -500,6 +504,12 @@ void initMasks(Atom* atom)
         mask3                              = (unsigned int)(0xf - 0x8 * cond0);
         atom->masks_2xnn_fn[cond0 * 2 + 0] = (mask1 << halfMaskBits) | mask0;
         atom->masks_2xnn_fn[cond0 * 2 + 1] = (mask3 << halfMaskBits) | mask2;
+
+        atom->masks_2xn_hn[cond0 * 2 + 0] = (unsigned int)(0xf - 0x1 * cond0);
+        atom->masks_2xn_hn[cond0 * 2 + 1] = (unsigned int)(0xf - 0x3 * cond0);
+
+        atom->masks_2xn_fn[cond0 * 2 + 0] = (unsigned int)(0xf - 0x1 * cond0);
+        atom->masks_2xn_fn[cond0 * 2 + 1] = (unsigned int)(0xf - 0x2 * cond0);
 
         atom->masks_4xn_hn[cond0 * 4 + 0] = (unsigned int)(0xf - 0x1 * cond0);
         atom->masks_4xn_hn[cond0 * 4 + 1] = (unsigned int)(0xf - 0x3 * cond0);
