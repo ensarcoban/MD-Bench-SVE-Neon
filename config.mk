@@ -1,17 +1,17 @@
-# Compiler tool chain (GCC/CLANG/ICC/ICX/ONEAPI/NVCC)
-TOOLCHAIN ?= CLANG
+# Compiler tool chain (GCC/ARMCLANG/CLANG/ICC/ICX/ONEAPI/NVCC)
+TOOLCHAIN ?= ARMCLANG
 # ISA of instruction code (X86/ARM)
 ISA ?= ARM
 # Instruction set for instrinsic kernels (NONE/<X86-SIMD>/<ARM-SIMD>)
 # with X86-SIMD options: SSE/AVX/AVX_FMA/AVX2/AVX512
-# with ARM-SIMD options: NEON/SVE (SVE not implemented yet!)
-SIMD ?= NEON
+# with ARM-SIMD options: NEON/NEONT/SVE (SVE not implemented yet!)
+SIMD ?= NEONT
 # Optimization scheme (verletlist/clusterpair)
 OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP
-DATA_TYPE ?= DP
+DATA_TYPE ?= SP
 # AOS or SOA
 DATA_LAYOUT ?= AOS
 # Debug
@@ -58,12 +58,11 @@ ifeq ($(strip $(SIMD)), NONE)
 else
 ifeq ($(strip $(ISA)),ARM)
     ifeq ($(strip $(SIMD)), NEON)
-        # __SIMD_WIDTH_DBL__=4 # 2
-        ifeq ($(strip $(DATA_TYPE)), DP)
-            __SIMD_WIDTH_DBL__=4
-        else
-            __SIMD_WIDTH_DBL__=2
-        endif
+        __ISA_NEON__=true
+        __SIMD_WIDTH_DBL__=2
+    else ifeq($(strio $(SIMD)),NEONT)
+        __ISA_NEONT__=true
+        __SIMD_WIDTH_DBL__=4
     else ifeq ($(strip $(SIMD)), SVE)
 		# needs further specification
         __SIMD_WIDTH_DBL__=2
@@ -156,6 +155,14 @@ endif
 
 ifeq ($(strip $(__SSE__)),true)
     DEFINES += -D__ISA_SSE__
+endif
+
+ifeq ($(strip $(__ISA_NEON__)),true)
+    DEFINES += -D__ISA_NEON__
+endif
+
+ifeq ($(strip $(__ISA_NEONT__)),true)
+    DEFINES += -D__ISA_NEONT__
 endif
 
 ifeq ($(strip $(__ISA_AVX__)),true)
