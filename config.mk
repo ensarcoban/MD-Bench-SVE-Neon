@@ -1,17 +1,17 @@
 # Compiler tool chain (GCC/ARMCLANG/CLANG/ICC/ICX/ONEAPI/NVCC)
-TOOLCHAIN ?= ARMCLANG
+TOOLCHAIN ?= CLANG
 # ISA of instruction code (X86/ARM)
 ISA ?= ARM
 # Instruction set for instrinsic kernels (NONE/<X86-SIMD>/<ARM-SIMD>)
 # with X86-SIMD options: SSE/AVX/AVX_FMA/AVX2/AVX512
 # with ARM-SIMD options: NEON/NEONT/SVE (SVE not implemented yet!)
-SIMD ?= NEONT
+SIMD ?= NEON
 # Optimization scheme (verletlist/clusterpair)
 OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP
-DATA_TYPE ?= SP
+DATA_TYPE ?= DP
 # AOS or SOA
 DATA_LAYOUT ?= AOS
 # Debug
@@ -54,135 +54,132 @@ OPTIONS =  -DALIGNMENT=64
 DEFINES =
 
 ifeq ($(strip $(SIMD)), NONE)
-    VECTOR_WIDTH=1
+	VECTOR_WIDTH=1
 else
 ifeq ($(strip $(ISA)),ARM)
-    ifeq ($(strip $(SIMD)), NEON)
-        __ISA_NEON__=true
-        __SIMD_WIDTH_DBL__=2
-    else ifeq($(strio $(SIMD)),NEONT)
-        __ISA_NEONT__=true
-        __SIMD_WIDTH_DBL__=4
-    else ifeq ($(strip $(SIMD)), SVE)
+	ifeq ($(strip $(SIMD)), NEON)
+	__ISA_NEON__=true
+	__SIMD_WIDTH_DBL__=4
+	else ifeq ($(strip $(SIMD)), SVE)
 		# needs further specification
-        __SIMD_WIDTH_DBL__=2
-    endif
+	__SIMD_WIDTH_DBL__=2
+	endif
 else
 # X86
-    ifeq ($(strip $(SIMD)), SSE)
-        __ISA_SSE__=true
-        __SIMD_WIDTH_DBL__=2
-    else ifeq ($(strip $(SIMD)), AVX)
-        __ISA_AVX__=true
-        __SIMD_WIDTH_DBL__=4
-    else ifeq ($(strip $(SIMD)), AVX_FMA)
-        __ISA_AVX__=true
-        __ISA_AVX_FMA__=true
-        __SIMD_WIDTH_DBL__=4
-    else ifeq ($(strip $(SIMD)), AVX2)
-        #__SIMD_KERNEL__=true
-        __ISA_AVX2__=true
-        __SIMD_WIDTH_DBL__=4
-    else ifeq ($(strip $(SIMD)), AVX512)
-        __ISA_AVX512__=true
-        __SIMD_WIDTH_DBL__=8
-        ifeq ($(strip $(DATA_TYPE)), DP)
-            __SIMD_KERNEL__=true
-        endif
-    endif
+	ifeq ($(strip $(SIMD)), SSE)
+	__ISA_SSE__=true
+	__SIMD_WIDTH_DBL__=2
+	else ifeq ($(strip $(SIMD)), AVX)
+	__ISA_AVX__=true
+	__SIMD_WIDTH_DBL__=4
+	else ifeq ($(strip $(SIMD)), AVX_FMA)
+	__ISA_AVX__=true
+	__ISA_AVX_FMA__=true
+	__SIMD_WIDTH_DBL__=4
+	else ifeq ($(strip $(SIMD)), AVX2)
+	#__SIMD_KERNEL__=true
+	__ISA_AVX2__=true
+	__SIMD_WIDTH_DBL__=4
+	else ifeq ($(strip $(SIMD)), AVX512)
+	__ISA_AVX512__=true
+	__SIMD_WIDTH_DBL__=8
+	ifeq ($(strip $(DATA_TYPE)), DP)
+	__SIMD_KERNEL__=true
+	endif
+	endif
 endif
 
 # SIMD width is specified in double-precision, hence it may
 # need to be adjusted for single-precision
 ifeq ($(strip $(DATA_TYPE)), SP)
-    VECTOR_WIDTH=$(shell echo $$(( $(__SIMD_WIDTH_DBL__) * 2 )))
+	VECTOR_WIDTH=$(shell echo $$(( $(__SIMD_WIDTH_DBL__) * 2 )))
 else
-    VECTOR_WIDTH=$(__SIMD_WIDTH_DBL__)
+	VECTOR_WIDTH=$(__SIMD_WIDTH_DBL__)
 endif
 endif
 ifeq ($(strip $(DATA_LAYOUT)),AOS)
-    DEFINES +=  -DAOS
+	DEFINES +=  -DAOS
 endif
 ifeq ($(strip $(DATA_TYPE)),SP)
-    DEFINES +=  -DPRECISION=1
+	DEFINES +=  -DPRECISION=1
 else
-    DEFINES +=  -DPRECISION=2
+	DEFINES +=  -DPRECISION=2
 endif
 
 ifeq ($(strip $(SORT_ATOMS)),true)
-    DEFINES += -DSORT_ATOMS
+	DEFINES += -DSORT_ATOMS
 endif
 
 ifeq ($(strip $(EXPLICIT_TYPES)),true)
-    DEFINES += -DEXPLICIT_TYPES
+	DEFINES += -DEXPLICIT_TYPES
 endif
 
 ifeq ($(strip $(MEM_TRACER)),true)
-    DEFINES += -DMEM_TRACER
+	DEFINES += -DMEM_TRACER
 endif
 
 ifeq ($(strip $(INDEX_TRACER)),true)
-    DEFINES += -DINDEX_TRACER
+	DEFINES += -DINDEX_TRACER
 endif
 
 ifeq ($(strip $(COMPUTE_STATS)),true)
-    DEFINES += -DCOMPUTE_STATS
+	DEFINES += -DCOMPUTE_STATS
 endif
 
 ifeq ($(strip $(XTC_OUTPUT)),true)
-    DEFINES += -DXTC_OUTPUT
+	DEFINES += -DXTC_OUTPUT
 endif
 
 ifeq ($(strip $(USE_REFERENCE_VERSION)),true)
-    DEFINES += -DUSE_REFERENCE_VERSION
+	DEFINES += -DUSE_REFERENCE_VERSION
 endif
 
 ifeq ($(strip $(HALF_NEIGHBOR_LISTS_CHECK_CJ)),true)
-    DEFINES += -DHALF_NEIGHBOR_LISTS_CHECK_CJ
+	DEFINES += -DHALF_NEIGHBOR_LISTS_CHECK_CJ
 endif
 
 ifeq ($(strip $(DEBUG)),true)
-    DEFINES += -DDEBUG
+	DEFINES += -DDEBUG
 endif
 
 ifneq ($(VECTOR_WIDTH),)
-    DEFINES += -DVECTOR_WIDTH=$(VECTOR_WIDTH)
+	DEFINES += -DVECTOR_WIDTH=$(VECTOR_WIDTH)
 endif
 
 ifeq ($(strip $(__SIMD_KERNEL__)),true)
-    DEFINES += -D__SIMD_KERNEL__
+	DEFINES += -D__SIMD_KERNEL__
 endif
 
 ifeq ($(strip $(__SSE__)),true)
-    DEFINES += -D__ISA_SSE__
+	DEFINES += -D__ISA_SSE__
 endif
 
 ifeq ($(strip $(__ISA_NEON__)),true)
-    DEFINES += -D__ISA_NEON__
+	DEFINES += -D__ISA_NEON__
 endif
 
 ifeq ($(strip $(__ISA_NEONT__)),true)
-    DEFINES += -D__ISA_NEONT__
+	DEFINES += -D__ISA_NEONT__
 endif
 
 ifeq ($(strip $(__ISA_AVX__)),true)
-    DEFINES += -D__ISA_AVX__
+	DEFINES += -D__ISA_AVX__
 endif
 
 ifeq ($(strip $(__ISA_AVX_FMA__)),true)
-    DEFINES += -D__ISA_AVX_FMA__
+	DEFINES += -D__ISA_AVX_FMA__
 endif
 
 ifeq ($(strip $(__ISA_AVX2__)),true)
-    DEFINES += -D__ISA_AVX2__
+	DEFINES += -D__ISA_AVX2__
 endif
 
 ifeq ($(strip $(__ISA_AVX512__)),true)
-    DEFINES += -D__ISA_AVX512__
+	DEFINES += -D__ISA_AVX512__
 endif
 
 ifeq ($(strip $(ENABLE_OMP_SIMD)),true)
-    DEFINES += -DENABLE_OMP_SIMD
+	DEFINES += -DENABLE_OMP_SIMD
 endif
 
 ifeq ($(strip $(OPT_SCHEME)),verletlist)
