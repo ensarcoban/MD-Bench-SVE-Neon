@@ -11,7 +11,7 @@ OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP
-DATA_TYPE ?= DP
+DATA_TYPE ?= SP
 # AOS or SOA
 DATA_LAYOUT ?= AOS
 # Debug
@@ -58,6 +58,9 @@ ifeq ($(strip $(SIMD)), NONE)
 else
 ifeq ($(strip $(ISA)),ARM)
 	ifeq ($(strip $(SIMD)), NEON)
+	__ISA_NEON__=true
+	__SIMD_WIDTH_DBL__=2
+	else ifeq ($(strip $(SIMD)), NEONT)
 	__ISA_NEON__=true
 	__SIMD_WIDTH_DBL__=4
 	else ifeq ($(strip $(SIMD)), SVE)
