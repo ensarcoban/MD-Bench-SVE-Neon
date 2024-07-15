@@ -4,14 +4,14 @@ TOOLCHAIN ?= CLANG
 ISA ?= ARM
 # Instruction set for instrinsic kernels (NONE/<X86-SIMD>/<ARM-SIMD>)
 # with X86-SIMD options: SSE/AVX/AVX_FMA/AVX2/AVX512
-# with ARM-SIMD options: NEON/NEONT/SVE (SVE not implemented yet!)
+# with ARM-SIMD options: NEON/NEONT/SVE/SVET 
 SIMD ?= NEON
 # Optimization scheme (verletlist/clusterpair)
 OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
 ENABLE_LIKWID ?= false
 # SP or DP
-DATA_TYPE ?= SP
+DATA_TYPE ?= DP
 # AOS or SOA
 DATA_LAYOUT ?= AOS
 # Debug
@@ -34,7 +34,7 @@ ENABLE_OMP_SIMD ?= false
 
 # Configurations for clusterpair optimization scheme
 # Use reference version
-USE_REFERENCE_VERSION ?= false
+USE_REFERENCE_VERSION ?= true
 # Enable XTC output (a GROMACS file format for trajectories)
 XTC_OUTPUT ?= false
 # Check if cj is local when decreasing reaction force
@@ -64,8 +64,12 @@ ifeq ($(strip $(ISA)),ARM)
 	__ISA_NEON__=true
 	__SIMD_WIDTH_DBL__=4
 	else ifeq ($(strip $(SIMD)), SVE)
-		# needs further specification
+	__ISA_SVE__=true
 	__SIMD_WIDTH_DBL__=2
+	else ifeq ($(strip $(SIMD)), SVET)
+$(error SVE Touples not yet implemented!)
+	__ISA_SVE__=true
+	__SIMD_WIDTH_DBL__=4
 	endif
 else
 # X86
@@ -164,6 +168,14 @@ endif
 ifeq ($(strip $(__ISA_NEONT__)),true)
 	DEFINES += -D__ISA_NEONT__
 endif
+ifeq ($(strip $(__ISA_SVE__)),true)
+	DEFINES += -D__ISA_SVE__
+endif
+
+ifeq ($(strip $(__ISA_SVET__)),true)
+	DEFINES += -D__ISA_SVET__
+endif
+
 
 ifeq ($(strip $(__ISA_AVX__)),true)
 	DEFINES += -D__ISA_AVX__

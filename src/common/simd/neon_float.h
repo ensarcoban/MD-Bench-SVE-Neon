@@ -1,5 +1,5 @@
-#include <arm_neon.h>
-
+// #include <arm_neon.h>
+#warning neon_float
 // Typedefs for MD_SIMD_FLOAT and MD_SIMD_MASK
 typedef float32x4_t MD_SIMD_FLOAT;
 typedef uint32x4_t MD_SIMD_MASK;

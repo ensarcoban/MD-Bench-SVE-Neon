@@ -1,8 +1,8 @@
-#include <arm_acle.h>
-#include <arm_neon.h>
-#include <stdlib.h>
-#include <stdio.h>
-
+// #include <arm_acle.h>
+// #include <arm_neon.h>
+// #include <stdlib.h>
+// #include <stdio.h>
+#warning neon_double
 // Typedefs for MD_SIMD_FLOAT and MD_SIMD_MASK for double precision
 typedef float64x2x2_t MD_SIMD_FLOAT;
 typedef float64x2x2_t MD_SIMD_MASK;
@@ -183,7 +183,6 @@ static inline MD_SIMD_FLOAT simd_load_h_dual(const double* m) {
     fprintf(stderr,
         "simd_h_dual_incr_reduced_sum(): Not implemented for AVX2 with double "
         "precision!");
-    exit(-1);
     return (MD_SIMD_FLOAT){vdupq_n_f64(0.0), vdupq_n_f64(0.0)};
 }
 
@@ -192,7 +191,6 @@ static inline MD_SIMD_FLOAT simd_load_h_duplicate(const double* m) {
         fprintf(stderr,
         "simd_load_h_duplicatem(): Not implemented for AVX2 with double "
         "precision!");
-    exit(-1);
     return (MD_SIMD_FLOAT){vdupq_n_f64(value), vdupq_n_f64(value)};
 }
 
@@ -201,7 +199,6 @@ static inline void simd_h_decr3(double* m, MD_SIMD_FLOAT a0, MD_SIMD_FLOAT a1, M
     fprintf(stderr,
         "simd_h_decr3(): Not implemented for AVX2 with double "
         "precision!");
-    exit(-1);
     return;
 }
 
@@ -209,6 +206,6 @@ static inline double simd_h_dual_incr_reduced_sum(double* m, MD_SIMD_FLOAT v0, M
     fprintf(stderr,
         "simd_h_dual_incr_reduced_sum(): Not implemented for AVX2 with double "
         "precision!");
-    exit(-1);
+
     return 0.0;
 }

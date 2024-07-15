@@ -12,7 +12,8 @@
 
 #ifndef __FORCE_H_
 #define __FORCE_H_
-
+#define XSTR(x) STR(x)
+#define STR(x) #x
 typedef double (*ComputeForceFunction)(Parameter*, Atom*, Neighbor*, Stats*);
 extern ComputeForceFunction computeForce;
 
