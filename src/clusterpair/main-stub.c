@@ -4,6 +4,7 @@
  * Use of this source code is governed by a LGPL-3.0
  * license that can be found in the LICENSE file.
  */
+#warning Hey!
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

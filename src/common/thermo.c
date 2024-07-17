@@ -76,7 +76,7 @@ void computeThermo(int iflag, Parameter* param, Atom* atom)
     tmparr[mstat]  = t;
     prsarr[mstat]  = p;
     mstat++;
-    fprintf(stdout, "%i\t%e\t%e\n", istep, t, p);
+    // fprintf(stdout, "%i\t%e\t%e\n", istep, t, p);
 }
 
 void adjustThermo(Parameter* param, Atom* atom)

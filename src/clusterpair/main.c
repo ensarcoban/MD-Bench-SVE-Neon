@@ -7,7 +7,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <likwid-marker.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -219,10 +218,10 @@ int main(int argc, char** argv)
 
     param.cutneigh = param.cutforce + param.skin;
     setup(&param, &eam, &atom, &neighbor, &stats);
-    printParameter(&param);
-    printf(HLINE);
+    // printParameter(&param);
+    // printf(HLINE);
 
-    printf("step\ttemp\t\tpressure\n");
+    // printf("step\ttemp\t\tpressure\n");
     computeThermo(0, &param, &atom);
 #if defined(MEM_TRACER) || defined(INDEX_TRACER)
     traceAddresses(&param, &atom, &neighbor, n + 1);
@@ -308,19 +307,20 @@ int main(int argc, char** argv)
     cudaDeviceFree();
 #endif
 
-    printf(HLINE);
-    printf("System: %d atoms %d ghost atoms, Steps: %d\n",
-        atom.Natoms,
-        atom.Nghost,
-        param.ntimes);
-    printf("TOTAL %.2fs FORCE %.2fs NEIGH %.2fs REST %.2fs\n",
-        timer[TOTAL],
-        timer[FORCE],
-        timer[NEIGH],
-        timer[TOTAL] - timer[FORCE] - timer[NEIGH]);
-    printf(HLINE);
+    // printf(HLINE);
+    // printf("System: %d atoms %d ghost atoms, Steps: %d\n",
+    //     atom.Natoms,
+    //     atom.Nghost,
+    //     param.ntimes);
+    // printf("TOTAL %.2fs FORCE %.2fs NEIGH %.2fs REST %.2fs\n",
+    //     timer[TOTAL],
+    //     timer[FORCE],
+    //     timer[NEIGH],
+    //     timer[TOTAL] - timer[FORCE] - timer[NEIGH]);
+    // printf(HLINE);
 
 #ifdef _OPENMP
+#warning HERE
     int nthreads  = 0;
     int chunkSize = 0;
     omp_sched_t schedKind;
@@ -352,11 +352,20 @@ int main(int argc, char** argv)
     printf("Schedule: (%s,%d)\n", schedType, chunkSize);
 #endif
 
-    printf("Performance: %.2f million atom updates per second\n",
-        1e-6 * (double)atom.Natoms * param.ntimes / timer[TOTAL]);
+    // printf("Performance: %.2f million atom updates per second\n",
+    //     1e-6 * (double)atom.Natoms * param.ntimes / timer[TOTAL]);
 #ifdef COMPUTE_STATS
-    displayStatistics(&atom, &param, &stats, timer);
+    // displayStatistics(&atom, &param, &stats, timer);
 #endif
+    /* Total, Force, Neighbor, Rest, PerformanceToal, PerformanceForce */
+    printf("%.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n",
+        timer[TOTAL],
+        timer[FORCE],
+        timer[NEIGH],
+        timer[TOTAL] - timer[FORCE] - timer[NEIGH],
+        1e-6 * (double)atom.Natoms * param.ntimes / timer[TOTAL],
+        1e-6 * (double)atom.Natoms * param.ntimes / timer[FORCE]
+        );
     LIKWID_MARKER_CLOSE;
     return EXIT_SUCCESS;
 }
