@@ -15,22 +15,68 @@ echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceF
 echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce  > logs/sve_single_strong.log
 echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce  > logs/sve_double_strong.log
 
-for process_number in {0..71..1}; do
-    RESULT= $(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 200 -ny 100 -nz 100 -freq --freq= 3.4 )
-    echo $process_number, $RESULT>> logs/neon_single_strong.log
+# SINGLE NEON
+for process_number in {0..13..1}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/neon_single_strong.log
 done
 
-for process_number in {0..71..1}; do
-    RESULT= $(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 200 -ny 100 -nz 100 -freq --freq= 3.4 )
-    echo $process_number, $RESULT>> logs/neon_double_strong.log
+for process_number in {11..71..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/neon_single_strong.log
 done
 
-for process_number in {0..71..1}; do
-    RESULT= $(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace  -nx 200 -ny 100 -nz 100 -freq --freq= 3.4 )
-    echo $process_number, $RESULT>> logs/sve_single_strong.log
+for process_number in {72..143..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/neon_single_strong.log
 done
 
-for process_number in {0..71..1}; do
-    RESULT= $(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace  -nx 200 -ny 100 -nz 100 -freq --freq= 3.4 )
-    echo $process_number, $RESULT>> logs/sve_double_strong.log
+# DOUBLE NEON
+for process_number in {0..13..1}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/neon_double_strong.log
+done
+
+for process_number in {11..71..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/neon_double_strong.log
+done
+
+for process_number in {72..143..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace  -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/neon_double_strong.log
+done
+
+#SINGLE SVE
+
+for process_number in {0..13..1}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace   -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/sve_single_strong.log
+done
+
+for process_number in {11..71..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace   -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/sve_single_strong.log
+done
+
+for process_number in {72..143..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace   -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/sve_single_strong.log
+done
+
+#DOUBLE SVE
+
+for process_number in {0..13..1}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace   -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/sve_double_strong.log
+done
+
+for process_number in {11..71..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace   -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/sve_double_strong.log
+done
+
+for process_number in {72..143..10}; do
+    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace   -nx 50 -ny 50 -nz 50 -freq --freq= 3.4)
+    echo $(($process_number + 1)), $RESULT>> logs/sve_double_strong.log
 done
