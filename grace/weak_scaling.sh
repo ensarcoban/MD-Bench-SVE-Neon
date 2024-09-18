@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
-x_init=16
-y_init=16
-z_init=16
+x_init=10
+y_init=10
+z_init=10
 
 echo "Initial size: x=$x_init | y=$y_init |z=$z_init"
 cd /home/hpc/muco/muco117h/MD-Bench-SVE-Neon/grace
@@ -10,8 +10,11 @@ echo "ProcessNumber, x, y, z, Total, Force, Neighbor, Rest, PerformanceTotal, Pe
 echo "ProcessNumber, x, y, z, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce"  > logs/neon_double_weak.log
 echo "ProcessNumber, x, y, z, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce"  > logs/sve_single_weak.log
 echo "ProcessNumber, x, y, z, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce"  > logs/sve_double_weak.log
-
-for ((j=1; j<=144; j+=1)); do 
+increment=1
+for ((j=1; j<=144; j+=increment)); do
+    if [ $i -eq 10 ];then
+        increment=10
+    fi
     # Initial problem size
     x=$x_init
     y=$y_init
@@ -50,12 +53,29 @@ for ((j=1; j<=144; j+=1)); do
         fi
         index=`expr $index - 1`
     done
-    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/neon_single_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    # RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/neon_single_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    # echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/neon_single_weak.log
+    # RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/neon_double_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    # echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/neon_double_weak.log
+    # RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/sve_single_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    # echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/sve_single_weak.log
+    # RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/sve_double_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    # echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/sve_double_weak.log
+    RESULT=$(likwid-pin -q -c N:0 ./no_likwid/neon_single_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    echo 1, $x, $y, $z, $RESULT>> logs/neon_single_weak.log
+    RESULT=$(likwid-pin -q -c N:0 ./no_likwid/neon_double_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    echo 1, $x, $y, $z, $RESULT>> logs/neon_double_weak.log
+    RESULT=$(likwid-pin -q -c N:0 ./no_likwid/sve_single_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    echo 1, $x, $y, $z, $RESULT>> logs/sve_single_weak.log
+    RESULT=$(likwid-pin -q -c N:0 ./no_likwid/sve_double_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    echo 1, $x, $y, $z, $RESULT>> logs/sve_double_weak.log
+
+    RESULT=$(likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/neon_single_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
     echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/neon_single_weak.log
-    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/neon_single_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    RESULT=$(likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/neon_double_clang_grace  -nx $x -ny $y -nz $z -freq --freq= 3.4)
     echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/neon_double_weak.log
-    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/sve_single_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    RESULT=$(likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/sve_single_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
     echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/sve_single_weak.log
-    RESULT=$(srun --cpu-bind=none likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/sve_double_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
+    RESULT=$(likwid-pin -q -c N:0-$(($j-1)) ./no_likwid/sve_double_clang_grace   -nx $x -ny $y -nz $z -freq --freq= 3.4)
     echo $(($(($j-1)) + 1)), $x, $y, $z, $RESULT>> logs/sve_double_weak.log
 done

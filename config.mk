@@ -5,7 +5,7 @@ ISA ?= ARM
 # Instruction set for instrinsic kernels (NONE/<X86-SIMD>/<ARM-SIMD>)
 # with X86-SIMD options: SSE/AVX/AVX_FMA/AVX2/AVX512
 # with ARM-SIMD options: NEON/NEONT/SVE/SVET 
-SIMD ?= NEONT
+SIMD ?= NEON
 # Optimization scheme (verletlist/clusterpair)
 OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
@@ -30,11 +30,11 @@ COMPUTE_STATS ?= true
 
 # Configurations for verletlist optimization scheme
 # Use omp simd pragma when running with half neighbor-lists
-ENABLE_OMP_SIMD ?= true
+ENABLE_OMP_SIMD ?= false
 
 # Configurations for clusterpair optimization scheme
 # Use reference version
-USE_REFERENCE_VERSION ?= false
+USE_REFERENCE_VERSION ?= true
 # Enable XTC output (a GROMACS file format for trajectories)
 XTC_OUTPUT ?= false
 # Check if cj is local when decreasing reaction force
@@ -67,7 +67,7 @@ ifeq ($(strip $(ISA)),ARM)
 	__ISA_SVE__=true
 	__SIMD_WIDTH_DBL__=2
 		ifeq ($(strip $(DATA_TYPE)), DP)
-$(error please use SVET version for double precision SVE)
+#$(error please use SVET version for double precision SVE)
 		endif
 	else ifeq ($(strip $(SIMD)), SVET)
 	__ISA_SVE__=true

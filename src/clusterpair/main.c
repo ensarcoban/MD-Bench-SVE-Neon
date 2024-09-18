@@ -358,7 +358,8 @@ int main(int argc, char** argv)
     // displayStatistics(&atom, &param, &stats, timer);
 #endif
     /* Total, Force, Neighbor, Rest, PerformanceToal, PerformanceForce */
-    printf("%.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n",
+    printf("%d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n",
+        atom.Natoms,
         timer[TOTAL],
         timer[FORCE],
         timer[NEIGH],

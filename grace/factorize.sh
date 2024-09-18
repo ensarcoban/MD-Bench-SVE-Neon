@@ -7,7 +7,7 @@ z_init=16
 echo "Initial size: x=$x_init | y=$y_init |z=$z_init"
 echo " "
 
-for ((j=5; j<=140; j+=1)); do 
+for ((j=1; j<=144; j+=1)); do 
     # Initial problem size
     x=$x_init
     y=$y_init

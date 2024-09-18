@@ -44,7 +44,7 @@ extern double computeForceLJCUDA(Parameter*, Atom*, Neighbor*, Stats*);
 #ifdef USE_REFERENCE_VERSION
 #define KERNEL_NAME "Reference"
 #define CLUSTER_M    1
-#define CLUSTER_N    VECTOR_WIDTH
+#define CLUSTER_N    2
 #else
 #define CLUSTER_M 4
 // Simd2xNN (here used for single-precision)
