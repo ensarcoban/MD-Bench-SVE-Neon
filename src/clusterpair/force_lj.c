@@ -521,9 +521,6 @@ double computeForceLJ4xnFullNeigh(
     }
 
     double S = getTimeStamp();
-#ifdef _OPENMP
-#warning OPENMP
-#endif
 #pragma omp parallel
     {
         LIKWID_MARKER_START("force");

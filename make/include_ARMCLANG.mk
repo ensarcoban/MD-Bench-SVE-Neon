@@ -8,16 +8,16 @@ ANSI_CFLAGS += -pedantic
 
 ifeq ($(strip $(ISA)),ARM)
 	ifeq ($(strip $(SIMD)),SVE)
-		CFLAGS  = -fopenmp -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+sve2  $(ANSI_CFLAGS)    
+		CFLAGS  =  -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+sve2  $(ANSI_CFLAGS) -fopenmp 
 	endif
 	ifeq ($(strip $(SIMD)),SVET)
-		CFLAGS  = -fopenmp -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+sve2  $(ANSI_CFLAGS)    
+		CFLAGS  =  -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+sve2  $(ANSI_CFLAGS)  -fopenmp
 	endif
 	ifeq ($(strip $(SIMD)),NEON)
-		CFLAGS  = -fopenmp -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+nosve  $(ANSI_CFLAGS)    
+		CFLAGS  = -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+nosve  $(ANSI_CFLAGS) -fopenmp 
 	endif
 	ifeq ($(strip $(SIMD)),NEONT)
-		CFLAGS  = -fopenmp -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+nosve $(ANSI_CFLAGS)  
+		CFLAGS  = -Ofast -mcpu=neoverse-n2 -march=armv8.2-a+simd+nosve $(ANSI_CFLAGS)  -fopenmp
 	endif
 
 endif

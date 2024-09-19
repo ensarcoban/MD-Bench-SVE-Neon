@@ -1,82 +1,20 @@
-#!/bin/bash --login                   
-#SBATCH --nodes=1                  
-#SBATCH --time=02:00:00
-#SBATCH -w gracesup1            
-#SBATCH --job-name=job123 
-#SBATCH --export=NONE              
-                                   
-# unset SLURM_EXPORT_ENV           
+#!/bin/bash
+header="ProcessNumber, x, y, z, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce, Nthreads"
+size=58
 
-# module load <modules>            
+echo $header > logs/strong/neon_double_strong.log
+echo $header > logs/strong/neon_single_strong.log
+echo $header > logs/strong/sve_double_strong.log
+echo $header > logs/strong/sve_single_strong.log
 
-cd /home/hpc/muco/muco117h/MD-Bench-SVE-Neon/grace
-echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce  > logs/neon_single_strong.log
-echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce  > logs/neon_double_strong.log
-echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce  > logs/sve_single_strong.log
-echo ProcessNumber, Total, Force, Neighbor, Rest, PerformanceTotal, PerformanceForce  > logs/sve_double_strong.log
-
-# SINGLE NEON
-for process_number in {0..13..1}; do
-    RESULT=$(  likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace   -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/neon_single_strong.log
+for i in {0..143}; do
+    RESULT=$(likwid-pin -q -c N:0-$i ./bins/MDBench-CP-ARMCLANG-ARM-NEONT-DP   -nx $size -ny $size -nz $size -freq --freq= 3.4)
+    echo $i, $size, $size, $size, $RESULT>>logs/strong/neon_double_strong.log
+    RESULT=$(likwid-pin -q -c N:0-$i ./bins/MDBench-CP-ARMCLANG-ARM-NEON-SP   -nx $size -ny $size -nz $size -freq --freq= 3.4)
+    echo $i, $size, $size, $size, $RESULT>>logs/strong/neon_single_strong.log
+    RESULT=$(likwid-pin -q -c N:0-$i ./bins/MDBench-CP-ARMCLANG-ARM-SVET-DP   -nx $size -ny $size -nz $size -freq --freq= 3.4)
+    echo $i, $size, $size, $size, $RESULT>>logs/strong/sve_double_strong.log
+    RESULT=$(likwid-pin -q -c N:0-$i ./bins/MDBench-CP-ARMCLANG-ARM-SVE-SP   -nx $size -ny $size -nz $size -freq --freq= 3.4)
+    echo $i, $size, $size, $size, $RESULT>>logs/strong/sve_single_strong.log
 done
 
-for process_number in {11..71..10}; do
-    RESULT=$( likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace   -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/neon_single_strong.log
-done
-
-for process_number in {72..143..10}; do
-    RESULT=$(  likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace   -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/neon_single_strong.log
-done
-
-# DOUBLE NEON
-for process_number in {0..13..1}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace   -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/neon_double_strong.log
-done
-
-for process_number in {11..71..10}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace   -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/neon_double_strong.log
-done
-
-for process_number in {72..143..10}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/neon_single_clang_grace   -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/neon_double_strong.log
-done
-
-#SINGLE SVE
-
-for process_number in {0..13..1}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace    -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/sve_single_strong.log
-done
-
-for process_number in {11..71..10}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace    -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/sve_single_strong.log
-done
-
-for process_number in {72..143..10}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/sve_single_clang_grace    -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/sve_single_strong.log
-done
-
-#DOUBLE SVE
-
-for process_number in {0..13..1}; do
-    RESULT=$(   likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace    -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/sve_double_strong.log
-done
-
-for process_number in {11..71..10}; do
-    RESULT=$(  likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace    -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/sve_double_strong.log
-done
-
-for process_number in {72..143..10}; do
-    RESULT=$( likwid-pin -q -c N:0-$process_number ./no_likwid/sve_double_clang_grace    -nx 32 -ny 32 -nz 32 -freq --freq= 3.4)
-    echo $(($process_number + 1)), $RESULT>> logs/sve_double_strong.log
-done

@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <likwid-marker.h>
-#ifdef _OPENMP
+// #ifdef _OPENMP
 #include <omp.h>
-#endif
+// #endif
 
 #include <allocate.h>
 #include <atom.h>
@@ -319,38 +319,11 @@ int main(int argc, char** argv)
     //     timer[TOTAL] - timer[FORCE] - timer[NEIGH]);
     // printf(HLINE);
 
-#ifdef _OPENMP
-#warning HERE
     int nthreads  = 0;
-    int chunkSize = 0;
-    omp_sched_t schedKind;
-    char schedType[10];
-#pragma omp parallel
-#pragma omp master
-    {
-        omp_get_schedule(&schedKind, &chunkSize);
+    nthreads = omp_get_max_threads();    
 
-        switch (schedKind) {
-        case omp_sched_static:
-            strcpy(schedType, "static");
-            break;
-        case omp_sched_dynamic:
-            strcpy(schedType, "dynamic");
-            break;
-        case omp_sched_guided:
-            strcpy(schedType, "guided");
-            break;
-        case omp_sched_auto:
-            strcpy(schedType, "auto");
-            break;
-        }
-
-        nthreads = omp_get_max_threads();
-    }
-
-    printf("Num threads: %d\n", nthreads);
-    printf("Schedule: (%s,%d)\n", schedType, chunkSize);
-#endif
+    // printf("Num threads: %d\n", );
+    // printf("Schedule: (%s,%d)\n", schedType, chunkSize);
 
     // printf("Performance: %.2f million atom updates per second\n",
     //     1e-6 * (double)atom.Natoms * param.ntimes / timer[TOTAL]);
@@ -358,14 +331,15 @@ int main(int argc, char** argv)
     // displayStatistics(&atom, &param, &stats, timer);
 #endif
     /* Total, Force, Neighbor, Rest, PerformanceToal, PerformanceForce */
-    printf("%d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n",
+    printf("%d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %d\n",
         atom.Natoms,
         timer[TOTAL],
         timer[FORCE],
         timer[NEIGH],
         timer[TOTAL] - timer[FORCE] - timer[NEIGH],
         1e-6 * (double)atom.Natoms * param.ntimes / timer[TOTAL],
-        1e-6 * (double)atom.Natoms * param.ntimes / timer[FORCE]
+        1e-6 * (double)atom.Natoms * param.ntimes / timer[FORCE],
+        nthreads
         );
     LIKWID_MARKER_CLOSE;
     return EXIT_SUCCESS;

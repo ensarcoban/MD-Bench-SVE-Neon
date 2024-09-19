@@ -1,51 +1,10 @@
-#!/bin/bash -l
+#!/bin/bash
+particle_size=1000
 
-x_init=16
-y_init=16
-z_init=16
-
-echo "Initial size: x=$x_init | y=$y_init |z=$z_init"
-echo " "
-
-for ((j=1; j<=144; j+=1)); do 
-    # Initial problem size
-    x=$x_init
-    y=$y_init
-    z=$z_init
-    count=0
-    n_proc=$j
-    declare -a factor_array
-
-    i=2
-    for ((i;i<=$n_proc;)); do
-        if [ `expr $n_proc % $i` -eq 0 ];then
-            factor=$i
-            factor_array[count]=$factor
-            count=`expr $count + 1`
-            n_proc=$((n_proc / factor))
-        else 
-            i=`expr $i + 1`
-        fi
-    done
-    echo ${factor_array[@]}
-
-    direction=1
-    index=$((count-1))
-    for ((index;index>=0;)); do
-        if [ $direction -eq 1 ]; then
-            x=$((x*${factor_array[index]}))
-            direction=2
-        elif [ $direction -eq 2 ]; then
-            y=$((y*${factor_array[index]}))
-            direction=3
-        elif [ $direction -eq 3 ]; then
-            z=$((z*${factor_array[index]}))
-            direction=1
-        else
-            echo "FATAL ERROR"
-        fi
-        index=`expr $index - 1`
-    done
-
-    printf "%3d processes:    x=%4d | y=%4d | z=%4d     Atoms: %d     Atoms/Proc: %d\n" $j $x $y $z $((4*x*y*z)) $((4*x*y*z/j))
+for i in {1..14}; do
+    size=$(echo "scale=10; e(l($particle_size)/3)" | bc -l)
+    size=$(echo "($size+0.999)/1" | bc)  # This rounds up to the nearest whole number
+    size_cube=$((size * size * size))
+    echo "$size $size_cube"
+    particle_size=$(echo "$particle_size * 1.5" | bc)
 done
