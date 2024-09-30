@@ -9,7 +9,7 @@ SIMD ?= NEON
 # Optimization scheme (verletlist/clusterpair)
 OPT_SCHEME ?= clusterpair
 # Enable likwid (true or false)
-ENABLE_LIKWID ?= false
+ENABLE_LIKWID ?= true
 # SP or DP
 DATA_TYPE ?= SP
 # AOS or SOA
